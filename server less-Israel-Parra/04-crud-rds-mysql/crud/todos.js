@@ -2,6 +2,7 @@ const connection = require('../connection');
 const queryString = require('querystring');
 
 module.exports.findAll = (event, context, callback) => {
+    // es necesario cuando estamos dentro de una landa, utilizando mysql.
     context.callbackWaitsForEmptyEventLoop = false;
     const sql = 'SELECT * FROM todos';
     connection.query(sql, (error, rows) => {

@@ -1,0 +1,30 @@
+service: archivos-s3 # NOTE: update this with your service name
+
+custom:
+  # el backet donde se va a guardar todo ( es como un contenedor. )
+  bucket: curso-sls
+  default_stage: dev
+  # es lo que vamos a permitir subir
+  apigwBinary:
+    types:
+      - '*/*'
+
+plugins:
+  - serverless-apigw-binary
+  
+provider:
+  name: aws
+  runtime: nodejs8.10
+  profile: curso-sls
+  stage: ${opt:stage, self:custom.default_stage}
+
+functions:
+  uploadS3File:
+    handler: handler.app
+    environment:
+      # quedaria curso-sls-dev ( nombre del buckey y el environment)
+      bucket: ${self:custom.bucket}-${self:provider.stage}
+    events:
+      - http:
+          path: /upload
+          method: post

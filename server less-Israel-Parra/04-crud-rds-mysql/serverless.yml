@@ -60,10 +60,13 @@ provider:
 #    - exclude-me.js
 #    - exclude-me-dir/**
 
+# definimos la funcion
 functions:
   hello:
+    # nombre de la funcion
     handler: handler.hello
   findAll:
+  # quien se va a encargar de manejar la peticion
     handler: crud/todos.findAll
     events:
       - http:
