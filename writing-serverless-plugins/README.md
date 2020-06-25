@@ -11,7 +11,7 @@ Serverless Framework es una plataforma de código abierto increíblemente bien c
 
 >Este comando creará un index.js. Cuando abra este archivo, verá una clase con un constructor y algunas funciones simples. Echemos un vistazo paso a paso.
 
-``` js
+``` typescript
 class ServerlessPlugin {
   constructor(serverless, options) {
     this.serverless = serverless;
@@ -25,7 +25,7 @@ Cada plugin es una Clase. Esta Clase se instancia con un `serverless` objeto y u
 
 ## Defina sus Plugins
 
-``` js
+``` typescript
 class ServerlessPlugin {
   constructor(serverless, options) {
     // ...
@@ -71,7 +71,7 @@ Como tal, puede ver la definición del comando como una guía que puede usar má
 
 Puede notar que en este plugin que también tenemos la seccion de `options` junto a `usage` y `lifecycleEvents`.
 
-``` js
+``` typescript
 this.commands = {
   welcome: {
     usage: 'Helps you start your first Serverless plugin',
@@ -97,7 +97,7 @@ La sección `options` se puede usar para describir qué banderas se pueden usar 
 
 El fragmento discutido anteriormente es la definición de eventos del ciclo de vida, la descripción de la ayuda y una marca. Para la bandera, nuevamente tenemos una sección de descripción de ayuda, información sobre si la bandera es necesaria y un acceso directo a la bandera. Como se puede adivinar, **no todos son obligatorios**.
 
-``` js
+``` typescript
 this.commands = {
   welcome: {
     lifecycleEvents: [
@@ -111,6 +111,60 @@ this.commands = {
 };
 ```
 
-Esto funcionará de manera muy similar a la definición anterior. Sin embargo, no le proporcionará una comprobación automática de que la opción requerida se pasa al comando o cualquier información de ayuda.
+## Hook Events
 
-Desde esta perspectiva, sugeriría pasar el tiempo escribiendo usage, requisitos y atajos. Hará que sea mucho más fácil para los usuarios de su complemento descubrir cómo usarlo realmente.
+Definir los comandos y sus eventos de ciclo de vida es útil para describir lo que hace el complemento. **Hooks describe how the plugin does it.**.
+
+Puede encontrarlos justo debajo de los comandos en el constructor:
+
+``` typescript
+class ServerlessPlugin {
+  constructor(serverless, options) {
+    // ...
+    this.hooks = {
+      'before:welcome:hello': this.beforeWelcome.bind(this),
+      'welcome:hello': this.welcomeUser.bind(this),
+      'welcome:world': this.displayHelloMessage.bind(this),
+      'after:welcome:world': this.afterHelloWorld.bind(this),
+    };
+  }
+}
+```
+
+**Los Hooks nos ayudan a definir la implementación de cada paso**. En el código anterior, puede discernir el nombre del comando `welcome` y los dos eventos del ciclo de vida que definimos para él: `helloy` `world`.
+
+Hook `welcome:hello` define qué hacer en el paso `hello` de comando `welcome`; `before:welcome:hello` describe qué hacer antes del primer paso. Del mismo modo, `after:welcome:world` define qué hacer después del último paso.
+
+>Esto nos da un control muy detallado sobre la definición de **lo que hace el comando en cada paso, e ingresa acciones específicas antes y después de cada paso.**
+
+Recuerde que no tiene que definir cada paso. Tal vez en su implementación particular, solo le importa `world` y no el `hello`, y eso está absolutamente bien.
+
+ ### Más tarde, alguien más puede venir con su plugin y definir su propia implementación del plugin `welcome` según los pasos que especificó en el comando. Es un mundo abierto que permite extensiones (casi) infinitas.
+
+ ## Implementation 
+
+ Después de haber definido el comando, sus eventos del ciclo de vida y hooks, **todo lo que queda es la implementación real**. Los detalles son obviamente específicos del plugin en el que se está escribiendo.
+
+En la plantilla, solo estamos cerrando saludos y el mensaje que le hemos pasado:
+
+``` typescript
+class ServerlessPlugin {
+    // ...
+
+    beforeWelcome() {
+        this.serverless.cli.log('Hello from Serverless!');
+    }
+
+    welcomeUser() {
+        this.serverless.cli.log('Your message:');
+    }
+
+    displayHelloMessage() {
+        this.serverless.cli.log(`${this.options.message}`);
+    }
+
+    afterHelloWorld() {
+        this.serverless.cli.log('Please come again!');
+    }
+}
+```
