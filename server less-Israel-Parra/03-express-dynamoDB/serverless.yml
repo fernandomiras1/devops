@@ -13,7 +13,9 @@
 
 service: curso-sls-express # NOTE: update this with your service name
 
+# esta clave la definimos para hacer nuestras propias variables.
 custom:
+ # cramos esta varaible llamada tableName. 
   tableName: 'users-table-${self:provider.stage}'
   dynamodb:
     start:
@@ -31,6 +33,7 @@ provider:
   name: aws
   runtime: nodejs8.10
   stage: dev
+  # you can add statements to the Lambda function's IAM Role here ( le decimos que nuestra landa va a tener permisos para hacer todo esto en DynamoDB)
   iamRoleStatements:
     - Effect: Allow
       Action:
@@ -42,6 +45,7 @@ provider:
         - dynamodb:DeleteItem
       Resource:
         - { "Fn::GetAtt": ["UsersDynamoDBTable", "Arn" ] }
+ # variables de entorno.
   environment:
     USERS_TABLE: ${self:custom.tableName}
 
@@ -83,9 +87,10 @@ functions:
   app:
     handler: handler.generic
     events:
-      - http: ANY /
-      - http: ANY {proxy+}
-      
+      - http: ANY / # calquier ruta.
+      - http: ANY {proxy+} # cualquier ruta http con cualquier parametro.
+
+# Puedes agregar configuraciones de diferentes template de CloudFormation 
 resources:
   Resources:
     UsersDynamoDBTable:
